@@ -60,7 +60,7 @@ class Handler extends Thread {
     public Handler(Socket socket, int cnt, String directory) {
         clientSocket = socket;
         counter = cnt;
-        serverDirectory = directory;
+        serverDirectory = directory.charAt(directory.length() - 1) == '/' ? directory : directory + "/";
     }
 
     public void run() {
@@ -68,22 +68,22 @@ class Handler extends Thread {
             InputStream clientInpStream = clientSocket.getInputStream();
             BufferedReader in = new BufferedReader(new InputStreamReader(clientInpStream));
             OutputStream output = clientSocket.getOutputStream();
-            PrintWriter clientPW = new PrintWriter(output);
+            PrintWriter clientPW = new PrintWriter(output, true);
 
-            ObjectOutputStream objectOutput;// = new ObjectOutputStream(output);
-//            oout.writeObject("Server says Hi!");
-            clientPW.print("Connection Established");
+            ObjectOutputStream objectOutput = new ObjectOutputStream(output);
+//            objectOutput.writeObject("Connection Established");
+            clientPW.println("Connection Established");
 
             File severDirFiles = new File(serverDirectory);
 
             ArrayList<String> fileNames = new ArrayList<>(Arrays.asList(severDirFiles.list()));
             int filesNumber = fileNames.size();
-//            oout.writeObject(String.valueOf(fileNames.size()));
-            clientPW.print(String.valueOf(filesNumber));
+//            objectOutput.writeObject(String.valueOf(filesNumber));
+            clientPW.println(String.valueOf(filesNumber));
 
             for(String name: fileNames) {
-//                oout.writeObject(name);
-                clientPW.print(name);
+//                objectOutput.writeObject(name);
+                clientPW.println(name);
             }
 
             name = in.readLine();
@@ -102,8 +102,8 @@ class Handler extends Thread {
                 //System.out.println(fileName);
 
                 try {
-//                    fileReader = new FileInputStream(fileName);
-                    bufFileReader = new BufferedInputStream(new FileInputStream(fileName));
+                    fileReader = new FileInputStream(fileName);
+                    bufFileReader = new BufferedInputStream(fileReader);
                 }
                 catch (FileNotFoundException e) {
                     fileExists = false;
@@ -112,14 +112,14 @@ class Handler extends Thread {
                 if (fileExists) {
 //                    objectOutput = new ObjectOutputStream(output);
 //                    objectOutput.writeObject("Success");
-                    clientPW.print("Success");
+                    clientPW.println("Success");
                     System.out.println("Download begins");
 
                     sendBytes(bufFileReader, output);
                     System.out.println("Completed");
 
                     bufFileReader.close();
-//                    fileReader.close();
+                    fileReader.close();
 //                    objectOutput.close();
                     output.close();
                 }
@@ -128,7 +128,7 @@ class Handler extends Thread {
 //                    objectOutput.writeObject("FileNotFound");
                     clientPW.print("FileNotFound");
                     bufFileReader.close();
-//                    fileReader.close();
+                    fileReader.close();
 //                    objectOutput.close();
                     output.close();
                 }
