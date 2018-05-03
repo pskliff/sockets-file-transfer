@@ -89,6 +89,9 @@ class Handler extends Thread {
             name = in.readLine();
             char ch = name.charAt(0);//name.substring(0, 1);
 
+
+            int fileLength = 0;
+
             if (ch == '*') {
                 int n = name.length() - 1;
                 String fileName = name.substring(1, n);
@@ -101,7 +104,11 @@ class Handler extends Thread {
                 fileName = serverDirectory + fileName;
                 //System.out.println(fileName);
 
+                File fileToDown = new File(fileName);
+
+
                 try {
+                    fileLength =  (int)fileToDown.length();
                     fileReader = new FileInputStream(fileName);
                     bufFileReader = new BufferedInputStream(fileReader);
                 }
@@ -113,9 +120,10 @@ class Handler extends Thread {
 //                    objectOutput = new ObjectOutputStream(output);
 //                    objectOutput.writeObject("Success");
                     clientPW.println("Success");
+                    clientPW.println(fileLength);
                     System.out.println("Download begins");
 
-                    sendBytes(bufFileReader, output);
+                    sendBytes(bufFileReader, output, fileLength);
                     System.out.println("Completed");
 
                     bufFileReader.close();
@@ -144,10 +152,11 @@ class Handler extends Thread {
                         directory.mkdir();
                     }
 
-                    int size = 9022386;
-                    byte[] data = new byte[size];
-                    File newFile = new File(directory, name);
-                    FileOutputStream fileOut = new FileOutputStream(newFile);
+                    fileLength =  in.read();
+//                    int size = 9022386;
+                    byte[] data = new byte[fileLength];
+                    File fileToUp = new File(directory, name);
+                    FileOutputStream fileOut = new FileOutputStream(fileToUp);
                     DataOutputStream dataOut = new DataOutputStream(fileOut);
 
                     while (isEnded) {
@@ -172,9 +181,9 @@ class Handler extends Thread {
         }
     }
 
-    private static void sendBytes(BufferedInputStream in , OutputStream out) throws Exception {
-        int size = 9022386;
-        byte[] data = new byte[size];
+    private static void sendBytes(BufferedInputStream in , OutputStream out, int fileLength) throws Exception {
+//        int size = 9022386;
+        byte[] data = new byte[fileLength];
         int bytes = 0;
         int c = in.read(data, 0, data.length);
         out.write(data, 0, c);
