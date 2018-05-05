@@ -22,6 +22,9 @@ class Client extends JFrame implements ActionListener, MouseListener {
     OutputStream outToServer;
     BufferedInputStream bis;
     PrintWriter pw;
+    DataInputStream inputData;
+
+
     String name, file, path;
     String hostAddr;
     int portNumber;
@@ -37,7 +40,7 @@ class Client extends JFrame implements ActionListener, MouseListener {
 
 
     public Client(String dir, String host, int port) {
-        super("TCP CLIENT");
+        super("Torrent");
 
         // set dirName to the one that's entered by the user
         dirName = dir.charAt(dir.length() - 1) == '/' ? dir : dir + "/";
@@ -53,7 +56,7 @@ class Client extends JFrame implements ActionListener, MouseListener {
         panel = new JPanel(null);
 
         font = new Font("Roboto", Font.BOLD, 60);
-        title = new JLabel("TCP CLIENT");
+        title = new JLabel("Torrent");
         title.setFont(font);
         title.setBounds(300, 50, 400, 50);
         panel.add(title);
@@ -100,6 +103,8 @@ class Client extends JFrame implements ActionListener, MouseListener {
             outToServer = clientSocket.getOutputStream();
             ObjectInputStream oin = new ObjectInputStream(inFromServer);
             in = new BufferedReader(new InputStreamReader(inFromServer));
+            inputData = new DataInputStream(inFromServer);
+
             String s = in.readLine(); //(String) oin.readObject();
             System.out.println(s);
 
@@ -274,7 +279,7 @@ class Client extends JFrame implements ActionListener, MouseListener {
 
 //                ObjectInputStream oin = new ObjectInputStream(inFromServer);
                 String s = in.readLine();//(String) oin.readObject();
-                int fileSize = in.read();
+                int fileSize = Integer.parseInt(in.readLine());
 
                 byte[] data = new byte[fileSize];
 
@@ -284,19 +289,19 @@ class Client extends JFrame implements ActionListener, MouseListener {
                     DataOutputStream dataOut = new DataOutputStream(fileOut);
 
                     //empty file case
-                    while (complete) {
-                        c = inFromServer.read(data, 0, data.length);
-                        if (c == -1) {
+//                    while (complete) {
+                        c = inputData.read(data, 0, data.length); //data.length
+//                        if (c <= 0) {
                             complete = false;
                             System.out.println("Completed");
                             error.setText("Completed");
                             panel.revalidate();
 
-                        } else {
+//                        } else {
                             dataOut.write(data, 0, c);
                             dataOut.flush();
-                        }
-                    }
+//                        }
+//                    }
 
                     updateFileList(false);
                     fileOut.close();

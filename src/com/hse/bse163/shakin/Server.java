@@ -67,127 +67,139 @@ class Handler extends Thread {
         try {
             InputStream clientInpStream = clientSocket.getInputStream();
             BufferedReader in = new BufferedReader(new InputStreamReader(clientInpStream));
-            OutputStream output = clientSocket.getOutputStream();
+            DataOutputStream output = new DataOutputStream(clientSocket.getOutputStream());
             PrintWriter clientPW = new PrintWriter(output, true);
 
             ObjectOutputStream objectOutput = new ObjectOutputStream(output);
-//            objectOutput.writeObject("Connection Established");
             clientPW.println("Connection Established");
 
             File severDirFiles = new File(serverDirectory);
 
             ArrayList<String> fileNames = new ArrayList<>(Arrays.asList(severDirFiles.list()));
             int filesNumber = fileNames.size();
-//            objectOutput.writeObject(String.valueOf(filesNumber));
             clientPW.println(String.valueOf(filesNumber));
 
             for(String name: fileNames) {
-//                objectOutput.writeObject(name);
                 clientPW.println(name);
             }
-
-            name = in.readLine();
-            char ch = name.charAt(0);//name.substring(0, 1);
-
-
-            int fileLength = 0;
-
-            if (ch == '*') {
-                int n = name.length() - 1;
-                String fileName = name.substring(1, n);
-
-                FileInputStream fileReader = null;
-                BufferedInputStream bufFileReader = null;
-
-                boolean fileExists = true;
-                System.out.println("Request to download file " + fileName + " received from " + clientSocket.getInetAddress().getHostName() + "...");
-                fileName = serverDirectory + fileName;
-                //System.out.println(fileName);
-
-                File fileToDown = new File(fileName);
+            while (true)
+            {
+                name = in.readLine();
+                char ch = name.charAt(0);//name.substring(0, 1);
 
 
-                try {
-                    fileLength =  (int)fileToDown.length();
-                    fileReader = new FileInputStream(fileName);
-                    bufFileReader = new BufferedInputStream(fileReader);
-                }
-                catch (FileNotFoundException e) {
-                    fileExists = false;
-                    System.out.println("FileNotFoundException:" + e.getMessage());
-                }
-                if (fileExists) {
-//                    objectOutput = new ObjectOutputStream(output);
-//                    objectOutput.writeObject("Success");
-                    clientPW.println("Success");
-                    clientPW.println(fileLength);
-                    System.out.println("Download begins");
+                int fileLength = 0;
 
-                    sendBytes(bufFileReader, output, fileLength);
-                    System.out.println("Completed");
+                if (ch == '*') {
+                    int n = name.length() - 1;
+                    String fileName = name.substring(1, n);
 
-                    bufFileReader.close();
-                    fileReader.close();
-//                    objectOutput.close();
-                    output.close();
-                }
-                else {
-//                    objectOutput = new ObjectOutputStream(output);
-//                    objectOutput.writeObject("FileNotFound");
-                    clientPW.print("FileNotFound");
-                    bufFileReader.close();
-                    fileReader.close();
-//                    objectOutput.close();
-                    output.close();
-                }
-            }
-            else{
-                try {
-                    boolean isEnded = true;
-                    System.out.println("Request to upload file " + name + " received from " + clientSocket.getInetAddress().getHostName() + "...");
+                    FileInputStream fileReader = null;
+                    BufferedInputStream bufFileReader = null;
 
-                    File directory = new File(serverDirectory);
-                    if (!directory.exists()) {
-                        System.out.println("Directory made");
-                        directory.mkdir();
+                    boolean fileExists = true;
+                    System.out.println("Request to download file " + fileName + " received from " + clientSocket.getInetAddress().getHostName() + "...");
+                    fileName = serverDirectory + fileName;
+
+                    File fileToDown = new File(fileName);
+
+
+                    try {
+                        fileLength =  (int)fileToDown.length();
+                        fileReader = new FileInputStream(fileName);
+                        bufFileReader = new BufferedInputStream(fileReader);
                     }
+                    catch (FileNotFoundException e) {
+                        fileExists = false;
+                        System.out.println("FileNotFoundException:" + e.getMessage());
+                    }
+                    if (fileExists) {
+                        clientPW.println("Success");
+                        clientPW.println(fileLength);
+                        System.out.println("Download begins");
 
-                    fileLength =  in.read();
-//                    int size = 9022386;
-                    byte[] data = new byte[fileLength];
-                    File fileToUp = new File(directory, name);
-                    FileOutputStream fileOut = new FileOutputStream(fileToUp);
-                    DataOutputStream dataOut = new DataOutputStream(fileOut);
+                        sendBytes(bufFileReader, output, fileLength);
+                        System.out.println("Completed");
 
-                    while (isEnded) {
-                        int buf;
-                        buf = clientInpStream.read(data, 0, data.length);
-                        if (buf == -1) {
-                            isEnded = false;
-                            System.out.println("Completed");
-                        } else {
-                            dataOut.write(data, 0, buf);
-                            dataOut.flush();
+//                        bufFileReader.close();
+//                        fileReader.close();
+//                    output.close();
+                    }
+                    else {
+
+                        clientPW.print("FileNotFound");
+//                        bufFileReader.close();
+//                        fileReader.close();
+//                        output.close();
+                    }
+                }
+                else{
+                    try {
+                        boolean isEnded = true;
+                        System.out.println("Request to upload file " + name + " received from " + clientSocket.getInetAddress().getHostName() + "...");
+
+                        File directory = new File(serverDirectory);
+                        if (!directory.exists()) {
+                            System.out.println("Directory made");
+                            directory.mkdir();
                         }
+
+                        fileLength =  in.read();
+//                    int size = 9022386;
+                        byte[] data = new byte[fileLength];
+                        File fileToUp = new File(directory, name);
+                        FileOutputStream fileOut = new FileOutputStream(fileToUp);
+                        DataOutputStream dataOut = new DataOutputStream(fileOut);
+
+                        while (isEnded) {
+                            int buf;
+                            buf = clientInpStream.read(data, 0, data.length);
+                            if (buf == -1) {
+                                isEnded = false;
+                                System.out.println("Completed");
+                            } else {
+                                dataOut.write(data, 0, buf);
+                                dataOut.flush();
+                            }
+                        }
+                        fileOut.close();
+                    } catch (Exception exc) {
+                        System.out.println(exc.getMessage());
                     }
-                    fileOut.close();
-                } catch (Exception exc) {
-                    System.out.println(exc.getMessage());
                 }
             }
+
+
         }
         catch (Exception ex) {
             System.out.println(ex.getMessage());
         }
+        finally
+        {
+            try {
+                clientSocket.close();
+            } catch (IOException e) {
+                System.out.println("socketclose: " + e.getMessage());
+            }
+        }
     }
 
-    private static void sendBytes(BufferedInputStream in , OutputStream out, int fileLength) throws Exception {
+    private static void sendBytes(BufferedInputStream in , DataOutputStream out, int fileLength) throws Exception {
 //        int size = 9022386;
         byte[] data = new byte[fileLength];
         int bytes = 0;
         int c = in.read(data, 0, data.length);
-        out.write(data, 0, c);
+        out.write(data, 0, fileLength);
         out.flush();
+
+//        int count;
+//        byte[] buffer = new byte[8192]; // or 4096, or more
+//        while ((count = in.read(buffer)) > 0)
+//        {
+//            out.write(buffer, 0, count);
+//            out.flush();
+//        }
+
     }
 }
 
