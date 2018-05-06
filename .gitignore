@@ -30,4 +30,8 @@
 **/workspace.xml
 **/sockets-file-transfer.iml
 
+# Test Folders
+**/serverFolder
+**/clientFolder
+
 

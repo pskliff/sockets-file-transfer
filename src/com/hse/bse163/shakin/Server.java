@@ -70,7 +70,6 @@ class Handler extends Thread {
             DataOutputStream output = new DataOutputStream(clientSocket.getOutputStream());
             PrintWriter clientPW = new PrintWriter(output, true);
 
-            ObjectOutputStream objectOutput = new ObjectOutputStream(output);
             clientPW.println("Connection Established");
 
             File severDirFiles = new File(serverDirectory);
@@ -82,6 +81,7 @@ class Handler extends Thread {
             for(String name: fileNames) {
                 clientPW.println(name);
             }
+
             while (true)
             {
                 name = in.readLine();
@@ -133,40 +133,6 @@ class Handler extends Thread {
 //                        output.close();
                     }
                 }
-                else{
-                    try {
-                        boolean isEnded = true;
-                        System.out.println("Request to upload file " + name + " received from " + clientSocket.getInetAddress().getHostName() + "...");
-
-                        File directory = new File(serverDirectory);
-                        if (!directory.exists()) {
-                            System.out.println("Directory made");
-                            directory.mkdir();
-                        }
-
-                        fileLength =  in.read();
-//                    int size = 9022386;
-                        byte[] data = new byte[fileLength];
-                        File fileToUp = new File(directory, name);
-                        FileOutputStream fileOut = new FileOutputStream(fileToUp);
-                        DataOutputStream dataOut = new DataOutputStream(fileOut);
-
-                        while (isEnded) {
-                            int buf;
-                            buf = clientInpStream.read(data, 0, data.length);
-                            if (buf == -1) {
-                                isEnded = false;
-                                System.out.println("Completed");
-                            } else {
-                                dataOut.write(data, 0, buf);
-                                dataOut.flush();
-                            }
-                        }
-                        fileOut.close();
-                    } catch (Exception exc) {
-                        System.out.println(exc.getMessage());
-                    }
-                }
             }
 
 
@@ -186,20 +152,56 @@ class Handler extends Thread {
 
     private static void sendBytes(BufferedInputStream in , DataOutputStream out, int fileLength) throws Exception {
 //        int size = 9022386;
-        byte[] data = new byte[fileLength];
-        int bytes = 0;
-        int c = in.read(data, 0, data.length);
-        out.write(data, 0, fileLength);
-        out.flush();
+//        byte[] data = new byte[fileLength];
+//        int bytes = 0;
+//        int c = in.read(data, 0, data.length);
+//        out.write(data, 0, fileLength);
+//        out.flush();
 
-//        int count;
-//        byte[] buffer = new byte[8192]; // or 4096, or more
-//        while ((count = in.read(buffer)) > 0)
-//        {
-//            out.write(buffer, 0, count);
+        int count;
+        byte[] buffer = new byte[4096]; // or 4096, or more
+        while ((count = in.read(buffer)) > 0)
+        {
+            out.write(buffer, 0, count);
 //            out.flush();
-//        }
+        }
 
     }
 }
 
+
+
+//else{
+//        try {
+//        boolean isEnded = true;
+//        System.out.println("Request to upload file " + name + " received from " + clientSocket.getInetAddress().getHostName() + "...");
+//
+//        File directory = new File(serverDirectory);
+//        if (!directory.exists()) {
+//        System.out.println("Directory made");
+//        directory.mkdir();
+//        }
+//
+//        fileLength =  in.read();
+////                    int size = 9022386;
+//        byte[] data = new byte[fileLength];
+//        File fileToUp = new File(directory, name);
+//        FileOutputStream fileOut = new FileOutputStream(fileToUp);
+//        DataOutputStream dataOut = new DataOutputStream(fileOut);
+//
+//        while (isEnded) {
+//        int buf;
+//        buf = clientInpStream.read(data, 0, data.length);
+//        if (buf == -1) {
+//        isEnded = false;
+//        System.out.println("Completed");
+//        } else {
+//        dataOut.write(data, 0, buf);
+//        dataOut.flush();
+//        }
+//        }
+//        fileOut.close();
+//        } catch (Exception exc) {
+//        System.out.println(exc.getMessage());
+//        }
+//        }
