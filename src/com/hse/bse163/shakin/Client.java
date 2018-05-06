@@ -13,30 +13,24 @@ import java.util.HashSet;
 
 class Client extends JFrame implements ActionListener, MouseListener {
     private JPanel panel;
-    private JLabel titleLabel, fNameInpLabel, errorLabel, filesFolderLabel;
-    private Font titleFont, labelFont;
+    private JLabel errorLabel;
+    private JLabel filesFolderLabel;
     private JTextField fileNameText;
     private JButton downloadButton, folderLocation;
     private File clientDirectory;
-    private Socket clientSocket;
-    private InputStream inFromServer;
     private PrintWriter pw;
     private DataInputStream inputData;
 
 
-    private String name, file;
-    private String hostAddr;
-    private int portNumber;
-    int cnt;
+    private String name;
     private JList<String> filesList;
     private HashSet<String> names;
     private HashSet<String> clientFileNames;
-    private int len;
 
 
     private BufferedReader in;
 
-    final JFileChooser fileChooser = new JFileChooser();
+    private final JFileChooser fileChooser = new JFileChooser();
 
 
 
@@ -54,8 +48,8 @@ class Client extends JFrame implements ActionListener, MouseListener {
     {
         panel = new JPanel(null);
 
-        titleFont = new Font("Helvetica", Font.BOLD, 30);
-        titleLabel = new JLabel("Simple Torrent");
+        Font titleFont = new Font("Helvetica", Font.BOLD, 30);
+        JLabel titleLabel = new JLabel("Simple Torrent");
         titleLabel.setFont(titleFont);
         titleLabel.setBounds(300, 50, 700, 40);
         panel.add(titleLabel);
@@ -66,8 +60,8 @@ class Client extends JFrame implements ActionListener, MouseListener {
         panel.add(folderLocation);
 
 
-        labelFont = new Font("Helvetica Neue", Font.PLAIN, 20);
-        fNameInpLabel = new JLabel("Enter File Name :");
+        Font labelFont = new Font("Helvetica Neue", Font.PLAIN, 20);
+        JLabel fNameInpLabel = new JLabel("Enter File Name :");
         fNameInpLabel.setFont(labelFont);
         fNameInpLabel.setBounds(100, 450, 200, 50);
         panel.add(fNameInpLabel);
@@ -103,14 +97,14 @@ class Client extends JFrame implements ActionListener, MouseListener {
         clientDirectory = fileChooser.getCurrentDirectory();
 
         StringBuilder hostBuild = new StringBuilder();
-        portNumber = Utility.getHostPort(hostBuild);
-        hostAddr = hostBuild.toString();
+        int portNumber = Utility.getHostPort(hostBuild);
+        String hostAddr = hostBuild.toString();
 
         initGUI();
 
         try {
-            clientSocket = new Socket(hostAddr, portNumber);
-            inFromServer = clientSocket.getInputStream();
+            Socket clientSocket = new Socket(hostAddr, portNumber);
+            InputStream inFromServer = clientSocket.getInputStream();
             pw = new PrintWriter(clientSocket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(inFromServer));
             inputData = new DataInputStream(inFromServer);
@@ -118,7 +112,7 @@ class Client extends JFrame implements ActionListener, MouseListener {
             String successIndicator = in.readLine();
             System.out.println(successIndicator);
 
-            len = Integer.parseInt(in.readLine());
+            int len = Integer.parseInt(in.readLine());
             System.out.println(len);
 
             String[] temp_names = new String[len];
@@ -235,6 +229,7 @@ class Client extends JFrame implements ActionListener, MouseListener {
             long totalDown = 0;
             int remaining = fileSize;
             System.out.println("File size = " + fileSize);
+            int cnt;
             while ((cnt = inputData.read(data, 0, Math.min(data.length, remaining))) > 0) {
 
 
@@ -306,7 +301,7 @@ class Client extends JFrame implements ActionListener, MouseListener {
 
 
                 name = fileNameText.getText();
-                file = "*" + name + "*";
+                String file = "*" + name + "*";
 
                 inputData.skipBytes(inputData.available());
                 pw.println(file);
@@ -361,197 +356,3 @@ class Client extends JFrame implements ActionListener, MouseListener {
         tcp.run();
     }
 }
-
-
-
-//        JLabel hostLabel = new JLabel("Host:");
-//        hostLabel.setBounds(100, 100, 50, 20);
-//        panel.add(hostLabel);
-//
-//        JTextField hostField = new JTextField();
-//        hostField.setBounds(170, 100, 150, 20);
-//        panel.add(hostField);
-//
-//
-//
-//        JLabel portLabel = new JLabel("Port:");
-//        portLabel.setBounds(350, 100, 100, 20);
-//        panel.add(portLabel);
-//
-//        JTextField portField = new JTextField();
-//        portField.setBounds(420, 100, 100, 20);
-//        panel.add(portField);
-
-
-
-//
-//
-//else if (event.getSource() == uploadButton) {
-//        try {
-//        name = fileNameText.getText();
-//
-//        FileInputStream file = null;
-//        BufferedInputStream bis = null;
-//
-//        boolean fileExists = true;
-//        path = clientDirectory + name;
-//
-//        File fileToUpload = new File(path);
-//        int fileLength = 0;
-//
-//        try {
-//        fileLength = (int) fileToUpload.length();
-//        file = new FileInputStream(path);
-//        bis = new BufferedInputStream(file);
-//        } catch (FileNotFoundException e) {
-//        fileExists = false;
-//        System.out.println("FileNotFoundException:" + e.getMessage());
-//        errorLabel.setText("FileNotFoundException:" + e.getMessage());
-//        panel.revalidate();
-//        }
-//
-//        if (fileExists) {
-//        // send file name to server
-//        pw.println(name);
-//        pw.println(fileLength);
-//
-//        System.out.println("Upload begins");
-//        errorLabel.setText("Upload begins");
-//        panel.revalidate();
-//
-//        // send file data to server
-//        sendBytes(bis, outToServer, fileLength);
-//
-//        System.out.println("Completed");
-//        errorLabel.setText("Completed");
-//        panel.revalidate();
-//
-//        boolean exists = names.contains(name);
-//
-//        if (!exists) {
-//        names.add(name);
-//        len++;
-//        }
-//
-////                    String[] temp_names = (String[])names.toArray();
-////                    for (int i = 0; i < len; i++) {
-////                        temp_names[i] = names[i];
-////                    }
-//
-//        // sort the array of strings that's going to get displayed in the scrollpane
-////                    Arrays.sort(temp_names);
-//
-//        // update the contents of the list in scroll pane
-////                    filesList.setListData(temp_names);
-//
-//        updateFileList(true);
-//
-//        // close all file buffers
-//        bis.close();
-//        file.close();
-//        outToServer.close();
-//        }
-//        } catch (Exception e) {
-//        System.out.println("Exception: " + e.getMessage());
-//        errorLabel.setText("Exception:" + e.getMessage());
-//        panel.revalidate();
-//        }
-
-
-
-//empty file case
-//                    while (complete) {
-//                        cnt = inputData.read(data, 0, data.length); //data.length
-//                        if (cnt <= 0) {
-//                            complete = false;
-//                            System.out.println("Completed");
-//                            errorLabel.setText("Completed");
-//                            panel.revalidate();
-//
-//
-//                        } else {
-//                            dataOut.write(data, 0, cnt);
-//                            dataOut.flush();
-//
-//                            if(!clientFileNames.contains(name))
-//                                clientFileNames.add(name);
-//                        }
-//                    }
-
-
-
-//        final DownloadProgressBarPanel progressBar = new DownloadProgressBarPanel(0, 100);
-//                    String message = "Progress";
-//                    int result = JOptionPane.showConfirmDialog(null, progressBar,
-//                            message, JOptionPane.OK_CANCEL_OPTION);
-
-//        JFrame frame = new JFrame("Progress Bar Example");
-//        frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-//        frame.setContentPane(progressBar);
-//        frame.pack();
-//        frame.setVisible(true);
-//        JDialog dialog = new JDialog(this, "Progress");
-//        dialog.getContentPane().add(progressBar);
-//        dialog.setVisible(true);
-
-
-
-//public static class DownloadProgressBarPanel extends JPanel {
-//
-//    JProgressBar pbar;
-//
-//    private int minValue = 0;
-//
-//    private int maxValue = 100;
-//
-//    public DownloadProgressBarPanel(int min, int max) {
-//
-//        minValue = min;
-//        maxValue = max;
-//
-//        // initialize Progress Bar
-//        pbar = new JProgressBar();
-//        pbar.setMinimum(minValue);
-//        pbar.setMaximum(maxValue);
-////            pbar.setIndeterminate(true);
-//
-//        // add to JPanel
-//        add(pbar);
-//    }
-//
-//    public void updateBar(int newValue) {
-//        pbar.setValue(newValue);
-//    }
-//}
-
-
-//                try {
-//
-////                    java.lang.Thread.sleep(100);
-//                } catch (InterruptedException e) {
-//                    System.out.println("progress Bar Interrupted exception: " + e.getMessage() );
-//                }
-
-//                progressBar.setValue(percent);
-//
-
-
-//                try {
-//                    SwingUtilities.invokeLater(() ->  progressBar.setValue(percent));
-//                    java.lang.Thread.sleep(100);
-//                } catch (InterruptedException e) {
-//                    System.out.println("progress Bar Interrupted exception: " + e.getMessage() );
-//                }
-
-
-
-//SwingUtilities.invokeLater(() -> {
-//        try{
-//        runProgress(s, fileSize, directory);
-//        }
-//        catch (IOException e)
-//        {
-//        System.out.println("progress bar IOExc = " + e.getMessage());
-//        }
-//
-//        });
