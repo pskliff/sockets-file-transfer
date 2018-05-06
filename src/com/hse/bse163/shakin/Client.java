@@ -215,7 +215,7 @@ class Client extends JFrame implements ActionListener, MouseListener {
     /**
      * Runs Download of the file with showing it in the progress bar
      */
-    private void runProgress(String successIndicator, int fileSize, File directory, Utility.ProgressDialog progress) throws IOException {
+    private void runProgress(String successIndicator, long fileSize, File directory, Utility.ProgressDialog progress) throws IOException {
 
 
         byte[] data = new byte[4096];
@@ -227,10 +227,11 @@ class Client extends JFrame implements ActionListener, MouseListener {
 
 
             long totalDown = 0;
-            int remaining = fileSize;
+            long remaining = fileSize;
             System.out.println("File size = " + fileSize);
             int cnt;
-            while ((cnt = inputData.read(data, 0, Math.min(data.length, remaining))) > 0) {
+
+            while ((cnt = inputData.read(data, 0, (int)Math.min((long)data.length, remaining))) > 0) {
 
 
                 totalDown += cnt;
@@ -308,7 +309,7 @@ class Client extends JFrame implements ActionListener, MouseListener {
 
 
                 String s = in.readLine();
-                int fileSize = Integer.parseInt(in.readLine());
+                long fileSize = Long.parseLong(in.readLine());
 
                 if (Utility.hasPermission(fileSize)) {
                     final Utility.ProgressDialog progress = new Utility.ProgressDialog();

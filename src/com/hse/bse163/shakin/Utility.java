@@ -142,7 +142,7 @@ public class Utility {
     /**
      * Dialog that asks if user wants to download file
      */
-    public static boolean hasPermission(int fileSize) {
+    public static boolean hasPermission(long fileSize) {
 
         JPanel hpPanel = new JPanel();
         JLabel askLabel = new JLabel(String.format("Do you want to download a file of size = %.4f MB ?", fileSize / 1e6));

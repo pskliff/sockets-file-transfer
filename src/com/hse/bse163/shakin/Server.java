@@ -84,7 +84,7 @@ class Handler extends Thread {
                 String name = in.readLine();
                 char ch = name.charAt(0);
 
-                int fileLength = 0;
+                long fileLength = 0;
 
                 if (ch == '*') {
                     int n = name.length() - 1;
@@ -101,7 +101,7 @@ class Handler extends Thread {
 
 
                     try {
-                        fileLength =  (int)fileToDown.length();
+                        fileLength =  fileToDown.length();
                         fileReader = new FileInputStream(fileName);
                         bufFileReader = new BufferedInputStream(fileReader);
                     }
