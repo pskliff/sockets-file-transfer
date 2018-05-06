@@ -51,37 +51,6 @@ class Client extends JFrame implements ActionListener, MouseListener {
     }
 
 
-    private int getHostPort(StringBuilder host) {
-        JTextField hostField = new JTextField(15);
-        JTextField portField = new JTextField(15);
-
-        JPanel hpPanel = new JPanel();
-        JLabel hostLabel = new JLabel("Host:");
-        hpPanel.add(hostLabel);
-        hpPanel.add(hostField);
-        hpPanel.add(Box.createHorizontalStrut(50));
-        hpPanel.add(new JLabel("Port:"));
-        hpPanel.add(portField);
-
-        boolean ok = false;
-        String message = "Please Enter Host and Port";
-        while (!ok) {
-            int result = JOptionPane.showConfirmDialog(null, hpPanel,
-                    message, JOptionPane.OK_CANCEL_OPTION);
-            ok = result == JOptionPane.OK_OPTION;
-            try {
-                Integer.parseInt(portField.getText());
-            } catch (NumberFormatException e) {
-                ok = false;
-                message = "Please Enter Host and Port ( PORT MUST BE INT )";
-            }
-        }
-
-        host.append(hostField.getText());
-        return Integer.parseInt(portField.getText());
-    }
-
-
     private void run(String dir, String host, int port) {
         // set clientDirectory to the one that's entered by the user
 //        clientDirectory = dir.charAt(dir.length() - 1) == '/' ? dir : dir + "/";
@@ -89,7 +58,7 @@ class Client extends JFrame implements ActionListener, MouseListener {
         clientDirectory = fileChooser.getCurrentDirectory();
 
         StringBuilder hostBuild = new StringBuilder();
-        portNumber = getHostPort(hostBuild);
+        portNumber = Utility.getHostPort(hostBuild);
         hostAddr = hostBuild.toString();
 
 

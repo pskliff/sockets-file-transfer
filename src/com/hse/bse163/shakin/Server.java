@@ -114,7 +114,7 @@ class Handler extends Thread {
                         clientPW.println(fileLength);
                         System.out.println("Download begins");
 
-                        sendBytes(bufFileReader, output);
+                        Utility.sendBytes(bufFileReader, output);
                         System.out.println("Completed");
 
                     }
@@ -139,19 +139,7 @@ class Handler extends Thread {
     }
 
 
-    /**
-     * Sends file
-     * @param in stream to read file from
-     * @param out stream to write file in
-     */
-    private static void sendBytes(BufferedInputStream in , DataOutputStream out) throws Exception {
 
-        int count;
-        byte[] buffer = new byte[4096];
-        while ((count = in.read(buffer)) > 0)
-            out.write(buffer, 0, count);
-
-    }
 }
 
 
