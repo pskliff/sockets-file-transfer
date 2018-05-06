@@ -345,6 +345,7 @@ class Client extends JFrame implements ActionListener, MouseListener {
 
     private void runProgress(String s, int fileSize, File directory, ProgressDialog progress) throws IOException {
 
+//        inputData.skipBytes(inputData.available());
 
         byte[] data = new byte[4096];
 
@@ -360,11 +361,13 @@ class Client extends JFrame implements ActionListener, MouseListener {
             System.out.println("File size = " + fileSize);
             while ((c = inputData.read(data, 0, Math.min(data.length, remaining))) > 0) {
 
+
                 totalDown += c;
                 remaining -= c;
                 final int percent = (int) (totalDown * 100 / fileSize);
 
-                progress.updateBar(percent);
+                SwingUtilities.invokeLater(() ->  progress.updateBar(percent));
+//                progress.updateBar(percent);
 
                 if (fileSize < 1e3)
                     try {

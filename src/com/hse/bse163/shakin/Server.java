@@ -14,9 +14,9 @@ public class Server {
      */
     public static void main(String args[]) throws Exception {
         String serverDirectory;
-        // TODO: if no argument — default path is current dir
         if(args.length == 0) {
-            System.out.println("Please enter the server directory address as first argument while running from command line.");
+            System.out.println("Enter directory as the first command line argument and port as the second (Default port: 8888)");
+            return;
         }
         else {
 
@@ -26,12 +26,10 @@ public class Server {
 
             ServerSocket listenerSocket;
 
-            if(args.length >= 2){
+            if(args.length >= 2)
                 listenerSocket = new ServerSocket(Integer.parseInt(args[1]));
-            }
-            else{
+            else
                 listenerSocket = new ServerSocket(8888);
-            }
 
 
             int id = 1;
@@ -39,8 +37,8 @@ public class Server {
                 Socket clientSocket = listenerSocket.accept();
 
                 //TODO: make logging
-                System.out.println("Client with ID " + id + " connected from " + clientSocket.getInetAddress().getHostName() + "...");
-                Thread server = new Handler(clientSocket, id, serverDirectory);
+                System.out.println("Client with ID " + id + " connected from " + clientSocket.getInetAddress().getHostName());
+                Thread server = new Handler(clientSocket, serverDirectory);
                 id++;
                 server.start();
             }
@@ -48,21 +46,21 @@ public class Server {
     }
 }
 
+
 class Handler extends Thread {
-//    int n;
 
-    String name, f, fileData;
+    private Socket clientSocket;
+    private String serverDirectory;
 
-    Socket clientSocket;
-    int counter;
-    String serverDirectory;
-
-    public Handler(Socket socket, int cnt, String directory) {
+    public Handler(Socket socket, String directory) {
         clientSocket = socket;
-        counter = cnt;
-        serverDirectory = directory.charAt(directory.length() - 1) == '/' ? directory : directory + "/";
+        serverDirectory = directory.charAt(directory.length() - 1) == File.separatorChar ? directory : directory + File.separator;
     }
 
+
+    /**
+     * Works with client (Allows to download files)
+     */
     public void run() {
         try {
             InputStream clientInpStream = clientSocket.getInputStream();
@@ -78,15 +76,13 @@ class Handler extends Thread {
             int filesNumber = fileNames.size();
             clientPW.println(String.valueOf(filesNumber));
 
-            for(String name: fileNames) {
+            for(String name: fileNames)
                 clientPW.println(name);
-            }
 
             while (true)
             {
-                name = in.readLine();
-                char ch = name.charAt(0);//name.substring(0, 1);
-
+                String name = in.readLine();
+                char ch = name.charAt(0);
 
                 int fileLength = 0;
 
@@ -94,11 +90,11 @@ class Handler extends Thread {
                     int n = name.length() - 1;
                     String fileName = name.substring(1, n);
 
-                    FileInputStream fileReader = null;
+                    FileInputStream fileReader;
                     BufferedInputStream bufFileReader = null;
 
                     boolean fileExists = true;
-                    System.out.println("Request to download file " + fileName + " received from " + clientSocket.getInetAddress().getHostName() + "...");
+                    System.out.println("Request to download file " + fileName + " received from Client: " + clientSocket.getInetAddress().getHostName());
                     fileName = serverDirectory + fileName;
 
                     File fileToDown = new File(fileName);
@@ -118,20 +114,12 @@ class Handler extends Thread {
                         clientPW.println(fileLength);
                         System.out.println("Download begins");
 
-                        sendBytes(bufFileReader, output, fileLength);
+                        sendBytes(bufFileReader, output);
                         System.out.println("Completed");
 
-//                        bufFileReader.close();
-//                        fileReader.close();
-//                    output.close();
                     }
-                    else {
-
+                    else
                         clientPW.print("FileNotFound");
-//                        bufFileReader.close();
-//                        fileReader.close();
-//                        output.close();
-                    }
                 }
             }
 
@@ -145,12 +133,18 @@ class Handler extends Thread {
             try {
                 clientSocket.close();
             } catch (IOException e) {
-                System.out.println("socketclose: " + e.getMessage());
+                System.out.println("SocketClose: " + e.getMessage());
             }
         }
     }
 
-    private static void sendBytes(BufferedInputStream in , DataOutputStream out, int fileLength) throws Exception {
+
+    /**
+     * Sends file
+     * @param in stream to read file from
+     * @param out stream to write file in
+     */
+    private static void sendBytes(BufferedInputStream in , DataOutputStream out) throws Exception {
 
         int count;
         byte[] buffer = new byte[4096];
