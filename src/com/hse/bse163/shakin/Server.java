@@ -151,24 +151,23 @@ class Handler extends Thread {
     }
 
     private static void sendBytes(BufferedInputStream in , DataOutputStream out, int fileLength) throws Exception {
+
+        int count;
+        byte[] buffer = new byte[4096];
+        while ((count = in.read(buffer)) > 0)
+            out.write(buffer, 0, count);
+
+    }
+}
+
+
+
 //        int size = 9022386;
 //        byte[] data = new byte[fileLength];
 //        int bytes = 0;
 //        int c = in.read(data, 0, data.length);
 //        out.write(data, 0, fileLength);
 //        out.flush();
-
-        int count;
-        byte[] buffer = new byte[4096]; // or 4096, or more
-        while ((count = in.read(buffer)) > 0)
-        {
-            out.write(buffer, 0, count);
-//            out.flush();
-        }
-
-    }
-}
-
 
 
 //else{
