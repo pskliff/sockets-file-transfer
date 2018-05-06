@@ -1,6 +1,7 @@
 package com.hse.bse163.shakin;
 
 import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
+import javafx.concurrent.Task;
 import javafx.stage.FileChooser;
 
 import java.io.*;
@@ -51,21 +52,12 @@ class Client extends JFrame implements ActionListener, MouseListener {
     }
 
 
-    private void run(String dir, String host, int port) {
-        // set clientDirectory to the one that's entered by the user
-//        clientDirectory = dir.charAt(dir.length() - 1) == '/' ? dir : dir + "/";
-
-        clientDirectory = fileChooser.getCurrentDirectory();
-
-        StringBuilder hostBuild = new StringBuilder();
-        portNumber = Utility.getHostPort(hostBuild);
-        hostAddr = hostBuild.toString();
-
-
-
+    /**
+     * initialize GUI
+     */
+    void initGUI()
+    {
         panel = new JPanel(null);
-
-
 
         titleFont = new Font("Helvetica", Font.BOLD, 30);
         titleLabel = new JLabel("Simple Torrent");
@@ -79,7 +71,6 @@ class Client extends JFrame implements ActionListener, MouseListener {
         panel.add(folderLocation);
 
 
-
         labelFont = new Font("Helvetica Neue", Font.PLAIN, 20);
         fNameInpLabel = new JLabel("Enter File Name :");
         fNameInpLabel.setFont(labelFont);
@@ -87,14 +78,15 @@ class Client extends JFrame implements ActionListener, MouseListener {
         panel.add(fNameInpLabel);
 
 
-
         fileNameText = new JTextField();
         fileNameText.setBounds(400, 450, 500, 50);
         panel.add(fileNameText);
 
+
         downloadButton = new JButton("Download");
         downloadButton.setBounds(550, 550, 200, 50);
         panel.add(downloadButton);
+
 
         errorLabel = new JLabel("");
         errorLabel.setFont(labelFont);
@@ -102,9 +94,24 @@ class Client extends JFrame implements ActionListener, MouseListener {
         panel.add(errorLabel);
 
 
-
         downloadButton.addActionListener(this);
         folderLocation.addActionListener(this);
+    }
+
+
+
+    /**
+     * Connects to the server and starts the client GUI
+     */
+    private void run() {
+
+        clientDirectory = fileChooser.getCurrentDirectory();
+
+        StringBuilder hostBuild = new StringBuilder();
+        portNumber = Utility.getHostPort(hostBuild);
+        hostAddr = hostBuild.toString();
+
+        initGUI();
 
         try {
             clientSocket = new Socket(hostAddr, portNumber);
@@ -130,10 +137,10 @@ class Client extends JFrame implements ActionListener, MouseListener {
                 temp_names[i] = filename;
             }
 
-            // sort the array of strings that's going to get displayed in the scrollpane
+
             Arrays.sort(temp_names);
 
-            filesFolderLabel = new JLabel("Files in the Server Directory :");
+            filesFolderLabel = new JLabel("Files in the SERVER Directory :");
             filesFolderLabel.setBounds(350, 125, 400, 50);
             panel.add(filesFolderLabel);
 
@@ -143,7 +150,6 @@ class Client extends JFrame implements ActionListener, MouseListener {
 
             panel.add(scroll);
             filesList.addMouseListener(this);
-
 
             updateFileNames();
 
@@ -188,17 +194,17 @@ class Client extends JFrame implements ActionListener, MouseListener {
         clientFileNames = new HashSet<>(Arrays.asList(clientDirectory.list()));
     }
 
+
     void updateFileList(boolean showServerFiles) {
         String[] temp_names;
-        // "Show client files".equals(folderLocation.getText())
         if (!showServerFiles) {
             temp_names = clientFileNames.toArray(new String[clientFileNames.size()]);
             folderLocation.setText("Show server files");
-            filesFolderLabel.setText("Files in the Client Directory :");
+            filesFolderLabel.setText("Files in the CLIENT Directory :");
         } else {
             temp_names = names.toArray(new String[names.size()]);
             folderLocation.setText("Show client files");
-            filesFolderLabel.setText("Files in the Server Directory :");
+            filesFolderLabel.setText("Files in the SERVER Directory :");
         }
 
         Arrays.sort(temp_names);
@@ -209,7 +215,7 @@ class Client extends JFrame implements ActionListener, MouseListener {
     private boolean hasPermission(int fileSize) {
 
         JPanel hpPanel = new JPanel();
-        JLabel askLabel = new JLabel(String.format("Do you want to download a file of size = %.4f kb ?", fileSize / 1024.0));
+        JLabel askLabel = new JLabel(String.format("Do you want to download a file of size = %.4f MB ?", fileSize / 1e6));
 
         hpPanel.add(askLabel);
         String message = "Do you??";
@@ -220,101 +226,12 @@ class Client extends JFrame implements ActionListener, MouseListener {
     }
 
 
-    public static class ProgressDialog {
-
-        private final JFrame frame = new JFrame();
-        private final JDialog dialog = new JDialog(frame, "Download Progress", false);
-        private final JProgressBar progressBar = new JProgressBar();
-
-
-        /**
-         * Конструктор progreeBar и диалога, в котором он содержится
-         */
-        public ProgressDialog() {
-
-            frame.setBounds(0, 0, 1000, 100);
-            dialog.setBounds(0, 0, 800, 80);
-            frame.setUndecorated(true);
-
-
-            progressBar.setMinimum(0);
-            progressBar.setMaximum(100);
-            progressBar.setValue(0);
-            progressBar.setStringPainted(true);
-
-            progressBar.setForeground(new Color(210, 105, 030));
-
-            progressBar.setPreferredSize(new Dimension(500, 20));
-
-            progressBar.setUI(new ProgressUI());
-
-            dialog.setUndecorated(true);
-
-
-            dialog.getContentPane().add(progressBar);
-            dialog.pack();
-            dialog.setDefaultCloseOperation(0);
-
-
-            Toolkit kit = dialog.getToolkit();
-            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            GraphicsDevice[] gs = ge.getScreenDevices();
-            Insets in = kit.getScreenInsets(gs[0].getDefaultConfiguration());
-            Dimension d = kit.getScreenSize();
-            int max_width = (d.width - in.left - in.right);
-            int max_height = (d.height - in.top - in.bottom);
-            dialog.setLocation((int) (max_width - dialog.getWidth()) / 2, (int) (max_height - dialog.getHeight()) / 2);
 
 
 
-            dialog.setVisible(true);
-            progressBar.setVisible(true);
-            dialog.setAlwaysOnTop(true);
-        }
 
+    private void runProgress(String s, int fileSize, File directory, Utility.ProgressDialog progress) throws IOException {
 
-
-        public void showDialog() {
-            dialog.setVisible(true);
-            dialog.setAlwaysOnTop(true);
-        }
-
-
-
-        public void closeDialog() {
-            if (dialog.isVisible()) {
-                dialog.getContentPane().remove(progressBar);
-                dialog.getContentPane().validate();
-                dialog.setVisible(false);
-            }
-        }
-
-
-        public void updateBar(int val) {
-            progressBar.setValue(val);
-        }
-
-
-
-        public static class ProgressUI extends BasicProgressBarUI {
-            private Rectangle r = new Rectangle();
-
-
-            protected void paintIndeterminate(Graphics g, JComponent c) {
-                Graphics2D g2d = (Graphics2D) g;
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                r = getBox(r);
-                g.setColor(progressBar.getForeground());
-                g.fillOval(r.x, r.y, r.height, r.height);
-            }
-        }
-    }
-
-
-
-    private void runProgress(String s, int fileSize, File directory, ProgressDialog progress) throws IOException {
-
-//        inputData.skipBytes(inputData.available());
 
         byte[] data = new byte[4096];
 
@@ -371,13 +288,7 @@ class Client extends JFrame implements ActionListener, MouseListener {
     }
 
 
-    private static void configureFileChooser(
-            final JFileChooser fileChooser) {
 
-        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        fileChooser.setDialogTitle("Select directory to save file");
-//        fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
-    }
 
 
     public void actionPerformed(ActionEvent event) {
@@ -390,7 +301,7 @@ class Client extends JFrame implements ActionListener, MouseListener {
                 String fileChooseMsg = "Select directory to save file";
 
                 File bufDir;
-                configureFileChooser(fileChooser);
+                Utility.configureFileChooser(fileChooser);
 
                     int ret = fileChooser.showDialog(null, fileChooseMsg);
                      bufDir = clientDirectory;
@@ -402,47 +313,40 @@ class Client extends JFrame implements ActionListener, MouseListener {
 
                 final File directory = bufDir;
 
-//                if (!directory.exists()) {
-//                    directory.mkdir();
-//                }
 
                 name = fileNameText.getText();
-                file = new String("*" + name + "*");
+                file = "*" + name + "*";
 
                 inputData.skipBytes(inputData.available());
-                pw.println(file); //lets the server know which file is to be downloaded
+                pw.println(file);
 
 
                 String s = in.readLine();
                 int fileSize = Integer.parseInt(in.readLine());
 
                 if (hasPermission(fileSize)) {
-                    final ProgressDialog progress = new ProgressDialog();
+                    final Utility.ProgressDialog progress = new Utility.ProgressDialog();
 
-                    java.util.Timer timer = new java.util.Timer();
-                    final TimerTask task = new TimerTask() {
-                        public void run() {
+
+                    final Task task = new Task() {
+                        @Override
+                        protected Object call() throws Exception {
                             progress.showDialog();
+                            return 0;
                         }
                     };
 
 
-                    timer.schedule(task, 1);
-                    Thread someThread = new Thread(new Runnable() {
-                        public void run() {
+                    Thread someThread = new Thread(() -> {
 
-                            try {
-                                runProgress(s, fileSize, directory, progress);
-                            } catch (IOException e) {
+                        try {
+                            runProgress(s, fileSize, directory, progress);
+                        } catch (IOException e) {
 
-                            }
-                            SwingUtilities.invokeLater(new Runnable() {
-                                public void run() {
-                                    task.cancel();
-                                    progress.closeDialog();
-                                }
-                            });
                         }
+                        SwingUtilities.invokeLater(() -> {
+                            progress.closeDialog();
+                        });
                     });
                     someThread.start();
 
@@ -458,42 +362,12 @@ class Client extends JFrame implements ActionListener, MouseListener {
     }
 
 
-    private static void sendBytes(BufferedInputStream in, OutputStream out, int fileLength) throws Exception {
-//        int size = 9022386;
-        byte[] data = new byte[fileLength];
-        int bytes = 0;
-        int c = in.read(data, 0, data.length);
-        out.write(data, 0, c);
-        out.flush();
-    }
-
 
 
     public static void main(String args[]) {
-
-        // if at least three argument are passed, consider the first one as directory path,
-        // the second one as host address and the third one as port number
-        // If host address is not present, default it to "localhost"
-        // If port number is not present, default it to 3333
-        // If directory path is not present, show errorLabel
-        if (args.length >= 3) {
-            Client tcp = new Client();
-            tcp.setSize(1000, 900);
-//            tcp.setVisible(true);
-            tcp.run(args[0], args[1], Integer.parseInt(args[2]));
-        } else if (args.length == 2) {
-            Client tcp = new Client();
-            tcp.setSize(1000, 900);
-//            tcp.setVisible(true);
-            tcp.run(args[0], args[1], 8888);
-        } else if (args.length == 1) {
-            Client tcp = new Client();
-            tcp.setSize(1000, 900);
-//            tcp.setVisible(true);
-            tcp.run(args[0], "localhost", 8888);
-        } else {
-            System.out.println("Please enter the client directory address as first argument while running from command line.");
-        }
+        Client tcp = new Client();
+        tcp.setSize(1000, 900);
+        tcp.run();
     }
 }
 
