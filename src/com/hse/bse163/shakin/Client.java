@@ -1,8 +1,6 @@
 package com.hse.bse163.shakin;
 
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import javafx.concurrent.Task;
-import javafx.stage.FileChooser;
 
 import java.io.*;
 import java.net.*;
@@ -10,10 +8,8 @@ import java.lang.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import javax.swing.plaf.basic.BasicProgressBarUI;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.TimerTask;
 
 class Client extends JFrame implements ActionListener, MouseListener {
     private JPanel panel;
@@ -24,15 +20,14 @@ class Client extends JFrame implements ActionListener, MouseListener {
     private File clientDirectory;
     private Socket clientSocket;
     private InputStream inFromServer;
-    private OutputStream outToServer;
     private PrintWriter pw;
     private DataInputStream inputData;
 
 
-    private String name, file, path;
+    private String name, file;
     private String hostAddr;
     private int portNumber;
-    int c;
+    int cnt;
     private JList<String> filesList;
     private HashSet<String> names;
     private HashSet<String> clientFileNames;
@@ -117,7 +112,6 @@ class Client extends JFrame implements ActionListener, MouseListener {
             clientSocket = new Socket(hostAddr, portNumber);
             inFromServer = clientSocket.getInputStream();
             pw = new PrintWriter(clientSocket.getOutputStream(), true);
-            outToServer = clientSocket.getOutputStream();
             in = new BufferedReader(new InputStreamReader(inFromServer));
             inputData = new DataInputStream(inFromServer);
 
@@ -165,6 +159,10 @@ class Client extends JFrame implements ActionListener, MouseListener {
     }
 
 
+    /**
+     * Handles double mouse click on the scrollpane
+     * @param click
+     */
     public void mouseClicked(MouseEvent click) {
         if (click.getClickCount() == 2) {
             String selectedItem = filesList.getSelectedValue();
@@ -189,12 +187,19 @@ class Client extends JFrame implements ActionListener, MouseListener {
     public void mouseReleased(MouseEvent e) {
     }
 
+
+    /**
+     * Updates list of file names of the last client directory
+     */
     void updateFileNames()
     {
         clientFileNames = new HashSet<>(Arrays.asList(clientDirectory.list()));
     }
 
 
+    /**
+     * Switches scroll pane contents between server files and client files
+     */
     void updateFileList(boolean showServerFiles) {
         String[] temp_names;
         if (!showServerFiles) {
@@ -212,44 +217,29 @@ class Client extends JFrame implements ActionListener, MouseListener {
     }
 
 
-    private boolean hasPermission(int fileSize) {
 
-        JPanel hpPanel = new JPanel();
-        JLabel askLabel = new JLabel(String.format("Do you want to download a file of size = %.4f MB ?", fileSize / 1e6));
-
-        hpPanel.add(askLabel);
-        String message = "Do you??";
-        int result = JOptionPane.showConfirmDialog(null, hpPanel,
-                message, JOptionPane.OK_CANCEL_OPTION);
-
-        return result == JOptionPane.OK_OPTION;
-    }
-
-
-
-
-
-
-    private void runProgress(String s, int fileSize, File directory, Utility.ProgressDialog progress) throws IOException {
+    /**
+     * Runs Download of the file with showing it in the progress bar
+     */
+    private void runProgress(String successIndicator, int fileSize, File directory, Utility.ProgressDialog progress) throws IOException {
 
 
         byte[] data = new byte[4096];
 
-        if (s.equals("Success")) {
+        if (successIndicator.equals("Success")) {
             File f = new File(directory, name);
             FileOutputStream fileOut = new FileOutputStream(f);
             DataOutputStream dataOut = new DataOutputStream(fileOut);
 
 
-
             long totalDown = 0;
             int remaining = fileSize;
             System.out.println("File size = " + fileSize);
-            while ((c = inputData.read(data, 0, Math.min(data.length, remaining))) > 0) {
+            while ((cnt = inputData.read(data, 0, Math.min(data.length, remaining))) > 0) {
 
 
-                totalDown += c;
-                remaining -= c;
+                totalDown += cnt;
+                remaining -= cnt;
                 final int percent = (int) (totalDown * 100 / fileSize);
 
                 SwingUtilities.invokeLater(() ->  progress.updateBar(percent));
@@ -269,7 +259,7 @@ class Client extends JFrame implements ActionListener, MouseListener {
                     }
 
 
-                dataOut.write(data, 0, c);
+                dataOut.write(data, 0, cnt);
             }
             System.out.println("Completed");
             errorLabel.setText("Completed");
@@ -289,8 +279,9 @@ class Client extends JFrame implements ActionListener, MouseListener {
 
 
 
-
-
+    /**
+     * handles all button click events
+     */
     public void actionPerformed(ActionEvent event) {
         if (event.getSource() == folderLocation) {
             updateFileList("Show server files".equals(folderLocation.getText()));
@@ -324,7 +315,7 @@ class Client extends JFrame implements ActionListener, MouseListener {
                 String s = in.readLine();
                 int fileSize = Integer.parseInt(in.readLine());
 
-                if (hasPermission(fileSize)) {
+                if (Utility.hasPermission(fileSize)) {
                     final Utility.ProgressDialog progress = new Utility.ProgressDialog();
 
 
@@ -470,8 +461,8 @@ class Client extends JFrame implements ActionListener, MouseListener {
 
 //empty file case
 //                    while (complete) {
-//                        c = inputData.read(data, 0, data.length); //data.length
-//                        if (c <= 0) {
+//                        cnt = inputData.read(data, 0, data.length); //data.length
+//                        if (cnt <= 0) {
 //                            complete = false;
 //                            System.out.println("Completed");
 //                            errorLabel.setText("Completed");
@@ -479,7 +470,7 @@ class Client extends JFrame implements ActionListener, MouseListener {
 //
 //
 //                        } else {
-//                            dataOut.write(data, 0, c);
+//                            dataOut.write(data, 0, cnt);
 //                            dataOut.flush();
 //
 //                            if(!clientFileNames.contains(name))

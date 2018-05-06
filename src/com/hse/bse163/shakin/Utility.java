@@ -99,12 +99,14 @@ public class Utility {
         }
     }
 
+
     public static void configureFileChooser(
             final JFileChooser fileChooser) {
 
         fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         fileChooser.setDialogTitle("Select directory to save file");
     }
+
 
     public static int getHostPort(StringBuilder host) {
         JTextField hostField = new JTextField(15);
@@ -138,11 +140,29 @@ public class Utility {
 
 
     /**
+     * Dialog that asks if user wants to download file
+     */
+    public static boolean hasPermission(int fileSize) {
+
+        JPanel hpPanel = new JPanel();
+        JLabel askLabel = new JLabel(String.format("Do you want to download a file of size = %.4f MB ?", fileSize / 1e6));
+
+        hpPanel.add(askLabel);
+        String message = "Do you??";
+        int result = JOptionPane.showConfirmDialog(null, hpPanel,
+                message, JOptionPane.OK_CANCEL_OPTION);
+
+        return result == JOptionPane.OK_OPTION;
+    }
+
+
+    /**
      * Sends file
-     * @param in stream to read file from
+     *
+     * @param in  stream to read file from
      * @param out stream to write file in
      */
-    public static void sendBytes(BufferedInputStream in , DataOutputStream out) throws Exception {
+    public static void sendBytes(BufferedInputStream in, DataOutputStream out) throws Exception {
 
         int count;
         byte[] buffer = new byte[4096];

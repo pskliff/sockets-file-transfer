@@ -147,7 +147,7 @@ class Handler extends Thread {
 //        int size = 9022386;
 //        byte[] data = new byte[fileLength];
 //        int bytes = 0;
-//        int c = in.read(data, 0, data.length);
+//        int cnt = in.read(data, 0, data.length);
 //        out.write(data, 0, fileLength);
 //        out.flush();
 
