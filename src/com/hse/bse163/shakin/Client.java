@@ -63,23 +63,23 @@ class Client extends JFrame implements ActionListener, MouseListener {
         Font labelFont = new Font("Helvetica Neue", Font.PLAIN, 20);
         JLabel fNameInpLabel = new JLabel("Enter File Name :");
         fNameInpLabel.setFont(labelFont);
-        fNameInpLabel.setBounds(100, 450, 200, 50);
+        fNameInpLabel.setBounds(100, 650, 200, 50);
         panel.add(fNameInpLabel);
 
 
         fileNameText = new JTextField();
-        fileNameText.setBounds(400, 450, 500, 50);
+        fileNameText.setBounds(310, 650, 500, 50);
         panel.add(fileNameText);
 
 
         downloadButton = new JButton("Download");
-        downloadButton.setBounds(550, 550, 200, 50);
+        downloadButton.setBounds(550, 750, 200, 50);
         panel.add(downloadButton);
 
 
         errorLabel = new JLabel("");
         errorLabel.setFont(labelFont);
-        errorLabel.setBounds(200, 650, 600, 50);
+        errorLabel.setBounds(200, 750, 600, 50);
         panel.add(errorLabel);
 
 
@@ -95,6 +95,8 @@ class Client extends JFrame implements ActionListener, MouseListener {
     private void run() {
 
         clientDirectory = fileChooser.getCurrentDirectory();
+
+        System.out.println("At Start ClientDirectory = " + clientDirectory.toString());
 
         StringBuilder hostBuild = new StringBuilder();
         int portNumber = Utility.getHostPort(hostBuild);
@@ -134,7 +136,7 @@ class Client extends JFrame implements ActionListener, MouseListener {
 
             filesList = new JList<>(temp_names);
             JScrollPane scroll = new JScrollPane(filesList);
-            scroll.setBounds(300, 200, 400, 200);
+            scroll.setBounds(300, 200, 600, 400);
 
             panel.add(scroll);
             filesList.addMouseListener(this);
@@ -222,10 +224,13 @@ class Client extends JFrame implements ActionListener, MouseListener {
 
         if (successIndicator.equals("Success")) {
             File f = new File(directory, name);
+
+
+
             FileOutputStream fileOut = new FileOutputStream(f);
             DataOutputStream dataOut = new DataOutputStream(fileOut);
 
-
+            System.out.println("File to save directory = " + f);
             long totalDown = 0;
             long remaining = fileSize;
             System.out.println("File size = " + fileSize);
@@ -234,9 +239,14 @@ class Client extends JFrame implements ActionListener, MouseListener {
             while ((cnt = inputData.read(data, 0, (int)Math.min((long)data.length, remaining))) > 0) {
 
 
+                System.out.println("Cnt = " + cnt);
                 totalDown += cnt;
                 remaining -= cnt;
                 final int percent = (int) (totalDown * 100 / fileSize);
+
+                System.out.println("Total = " + totalDown);
+                System.out.println("Remain = " + remaining);
+                System.out.println("Percent = " + percent);
 
                 SwingUtilities.invokeLater(() ->  progress.updateBar(percent));
 //                progress.updateBar(percent);
@@ -263,6 +273,7 @@ class Client extends JFrame implements ActionListener, MouseListener {
             if (!clientFileNames.contains(name))
                 clientFileNames.add(name);
 
+            System.out.println("client directory before updating = " + clientDirectory);
             updateFileNames();
             updateFileList(false);
             fileOut.close();
@@ -294,12 +305,19 @@ class Client extends JFrame implements ActionListener, MouseListener {
                      bufDir = clientDirectory;
                     if (ret == JFileChooser.APPROVE_OPTION)
                     {
-                        bufDir = fileChooser.getCurrentDirectory();
+                        bufDir = fileChooser.getSelectedFile();//fileChooser.getCurrentDirectory();
+                        System.out.println("file chooser curr dir after choosing directory = " + fileChooser.getCurrentDirectory());
+                        System.out.println("file chooser select file after choosing directory = " + fileChooser.getSelectedFile());
+                        System.out.println("Buf Dir after choosing directory = " + bufDir);
                         clientDirectory = bufDir;
                     }
 
                 final File directory = bufDir;
 
+                if (!directory.exists())
+                    directory.mkdir();
+
+                System.out.println("directory after choosing directory = " + directory);
 
                 name = fileNameText.getText();
                 String file = "*" + name + "*";
