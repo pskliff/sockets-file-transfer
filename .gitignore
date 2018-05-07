@@ -31,7 +31,11 @@
 **/sockets-file-transfer.iml
 
 # Test Folders
-**/serverFolder
-**/clientFolder
+**/serverFolder/
+**/clientFolder/
+**/out/
+
+#Manifest
+**/*.MF
 
 
